@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: -8845284484184096410}
   - component: {fileID: 7624670316182960144}
   m_Layer: 0
-  m_Name: Bullet
+  m_Name: PlayerBullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -127,8 +127,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
   speed: 20
+  damage: 25
   lifeTime: 5
-  damage: 10
   maxBounces: 3
 --- !u!54 &7624670316182960144
 Rigidbody:
@@ -155,5 +155,5 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 84
   m_CollisionDetection: 1

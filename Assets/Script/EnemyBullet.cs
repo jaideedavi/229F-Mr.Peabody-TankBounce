@@ -1,10 +1,10 @@
 using UnityEngine;
 
-public class Bullet : MonoBehaviour
+public class EnemyBullet : MonoBehaviour
 {
-   public float speed = 20f;
-    public float lifeTime = 5f;
+    public float speed = 25f;
     public float damage = 10f;
+    public float lifeTime = 3f;
     public int maxBounces = 3;
 
     int bounceCount = 0;
@@ -14,7 +14,7 @@ public class Bullet : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
 
-        // Shoot forward
+        rb.useGravity = false;
         rb.linearVelocity = transform.forward * speed;
 
         Destroy(gameObject, lifeTime);
@@ -22,26 +22,31 @@ public class Bullet : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        // HIT PLAYER
+        // HIT PLAYER ONLY
         if (collision.gameObject.CompareTag("Player"))
         {
-            Health hp = collision.gameObject.GetComponent<Health>();
-
-            if (hp != null)
+            PlayerController player = collision.gameObject.GetComponent<PlayerController>();
+            if (player != null)
             {
-                hp.TakeDamage(damage);
+                player.TakeDamage(damage);
             }
 
             Destroy(gameObject);
             return;
         }
 
-        // 🧱 BOUNCE ON WALL
+        // IGNORE ENEMY (no self-hit)
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            Physics.IgnoreCollision(collision.collider, GetComponent<Collider>());
+            return;
+        }
+
+        // BOUNCE ON WALL
         if (bounceCount < maxBounces)
         {
             Vector3 reflectDir = Vector3.Reflect(rb.linearVelocity.normalized, collision.contacts[0].normal);
             rb.linearVelocity = reflectDir * speed;
-
             bounceCount++;
         }
         else

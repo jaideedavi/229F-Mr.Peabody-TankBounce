@@ -49,7 +49,10 @@ public class AI_SimpleWalk : MonoBehaviour
             return;
         }
 
-        player = GameObject.FindGameObjectWithTag("Player").transform;
+        // SAFE player assign
+        GameObject p = GameObject.FindGameObjectWithTag("Player");
+        if (p != null)
+            player = p.transform;
 
         m_WaitTime = startWaitTime;
 
@@ -60,6 +63,13 @@ public class AI_SimpleWalk : MonoBehaviour
 
     void Update()
     {
+        // IMPORTANT: stop everything if player is gone
+        if (player == null)
+        {
+            navMeshAgent.isStopped = true;
+            return;
+        }
+
         EnvironmentView();
 
         if (m_PlayerInRange)
@@ -74,17 +84,17 @@ public class AI_SimpleWalk : MonoBehaviour
     }
 
     void Shoot()
-{
-    shootTimer -= Time.deltaTime;
-
-    if (shootTimer <= 0)
     {
-        Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
-        shootTimer = 1f / shootRate;
+        shootTimer -= Time.deltaTime;
 
-        Debug.Log("🔫 Enemy Shooting!");
+        if (shootTimer <= 0)
+        {
+            Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+            shootTimer = 1f / shootRate;
+
+            Debug.Log("Enemy Shooting!");
+        }
     }
-}
 
     // ================= PATROL =================
     void Patroling()
@@ -115,34 +125,36 @@ public class AI_SimpleWalk : MonoBehaviour
     // ================= CHASE =================
     void Chasing()
     {
-         float distance = Vector3.Distance(transform.position, player.position);
+        // SAFETY CHECK
+        if (player == null) return;
 
-    // Look at player
-    Vector3 direction = (player.position - transform.position).normalized;
-    direction.y = 0;
-    transform.forward = Vector3.Lerp(transform.forward, direction, Time.deltaTime * 5f);
+        float distance = Vector3.Distance(transform.position, player.position);
 
-    // If in shooting range → stop and shoot
-    if (distance <= shootRange)
-    {
-        navMeshAgent.isStopped = true;
+        // Look at player
+        Vector3 direction = (player.position - transform.position).normalized;
+        direction.y = 0;
+        transform.forward = Vector3.Lerp(transform.forward, direction, Time.deltaTime * 5f);
 
-        Shoot();
-    }
-    else
-    {
-        navMeshAgent.isStopped = false;
-        navMeshAgent.speed = speedRun;
-        navMeshAgent.SetDestination(player.position);
-    }
+        // Shooting range
+        if (distance <= shootRange)
+        {
+            navMeshAgent.isStopped = true;
+            Shoot();
+        }
+        else
+        {
+            navMeshAgent.isStopped = false;
+            navMeshAgent.speed = speedRun;
+            navMeshAgent.SetDestination(player.position);
+        }
 
-    // Lost player
-    if (distance > viewRadius + 5f)
-    {
-        m_PlayerInRange = false;
-        m_IsPatrol = true;
-        navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);
-    }
+        // Lost player → back to patrol
+        if (distance > viewRadius + 5f)
+        {
+            m_PlayerInRange = false;
+            m_IsPatrol = true;
+            navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);
+        }
     }
 
     void Attack()
@@ -157,8 +169,6 @@ public class AI_SimpleWalk : MonoBehaviour
         if (waypoints.Length == 0) return;
 
         m_CurrentWaypointIndex = (m_CurrentWaypointIndex + 1) % waypoints.Length;
-
-        Debug.Log("➡ Going to waypoint: " + m_CurrentWaypointIndex);
 
         navMeshAgent.isStopped = false;
         navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);
@@ -185,10 +195,11 @@ public class AI_SimpleWalk : MonoBehaviour
 
                 if (!Physics.Raycast(transform.position, dirToPlayer, distToPlayer, obstacleMask))
                 {
-                    Debug.Log("PLAYER DETECTED!");
-
                     m_PlayerInRange = true;
                     m_PlayerPosition = target.position;
+
+                    // update player reference safely
+                    player = target;
                 }
             }
         }
@@ -197,11 +208,9 @@ public class AI_SimpleWalk : MonoBehaviour
     // ================= DEBUG VISUAL =================
     void OnDrawGizmos()
     {
-        // View radius
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, viewRadius);
 
-        // Waypoints
         if (waypoints != null)
         {
             Gizmos.color = Color.red;
