@@ -13,9 +13,7 @@ public class ObjectDestroyChecker : MonoBehaviour
     private bool yellowDestroyed = false;
     private bool playerDestroyed = false;
 
-    // Canvas เมื่อชนะ (ทำลายศัตรูครบ)
     public GameObject winCanvas;
-    // Canvas เมื่อแพ้ (Player ถูกทำลายก่อน)
     public GameObject loseCanvas;
 
     private void Start()
@@ -36,7 +34,6 @@ public class ObjectDestroyChecker : MonoBehaviour
 
     private void CheckConditions()
     {
-        // ถ้า Player ถูกทำลายก่อน
         if (playerDestroyed && !(redDestroyed && greenDestroyed && yellowDestroyed))
         {
             if (loseCanvas != null)
@@ -46,7 +43,6 @@ public class ObjectDestroyChecker : MonoBehaviour
             return;
         }
 
-        // ถ้าศัตรูครบทั้งสามถูกทำลาย
         if (redDestroyed && greenDestroyed && yellowDestroyed && !playerDestroyed)
         {
             if (winCanvas != null)
@@ -56,13 +52,11 @@ public class ObjectDestroyChecker : MonoBehaviour
         }
     }
 
-    // ฟังก์ชันสำหรับปุ่มใน WinCanvas → ไปที่เมนู
     public void LoadMenuScene()
     {
         SceneManager.LoadScene("menu");
     }
 
-    // ฟังก์ชันสำหรับปุ่มใน LoseCanvas → เริ่มเกมใหม่ (โหลด Scene ปัจจุบัน)
     public void RestartGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);

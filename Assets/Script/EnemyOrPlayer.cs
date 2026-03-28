@@ -7,7 +7,6 @@ public class EnemyOrPlayer : MonoBehaviour
         ObjectDestroyChecker checker = FindObjectOfType<ObjectDestroyChecker>();
         if (checker != null)
         {
-            // ส่งชื่อ GameObject ที่ถูกทำลายไปให้ ObjectDestroyChecker
             checker.NotifyDestroyed(gameObject.name);
         }
     }
